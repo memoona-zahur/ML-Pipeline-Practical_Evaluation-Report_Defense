@@ -56,7 +56,7 @@ the violation itself is the grading point; using it would silently inject test-f
 | baseline | `DummyClassifier(strategy="most_frequent")` | the spec's trivial floor |
 | logistic_regression | `LogisticRegression(max_iter=2000)` | lbfgs converged in 139 iters; default limit 100 *warns* — documented |
 | decision_tree | `DecisionTreeClassifier(max_depth=3)` | 5-fold CV AUC: 3→0.8049 vs 4→0.7998, 5→0.7788, 6→0.7537, 7→0.7221, `None`→0.6660 |
-| random_forest | `RandomForestClassifier(n_estimators=200, random_state=42)` | CV AUC 100→0.8191, 200→0.8178, 300→0.8172, 500→0.8178 → 200 is the cost-free point |
+| random_forest | `RandomForestClassifier(n_estimators=200, random_state=42)` | CV AUC 100→0.8191, 200→0.8178, 300→0.8172, 500→0.8178 — flat; 100 shows the single highest number but the 100→500 spread (~0.0013) is inside CV noise, so 200 is the modest capacity pick |
 
 All models: `fit(X_train, y_train)` only; scored on `X_test` only.
 
