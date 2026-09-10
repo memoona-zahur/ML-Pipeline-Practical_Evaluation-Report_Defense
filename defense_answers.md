@@ -115,7 +115,7 @@ are trustworthy** — worst bin gap is 3.6 points; average gap ≈ 0.02. Why doe
 Risk-tiered pricing (e.g., "up to 15% default probability → borderline bucket") and cut-offs like
 "reject above 0.80" assume the number pip is a real frequency. With my forest, "predict 0.90" really
 means ~90% default; with a poorly calibrated model you could set a cut-off at 0.80 and actually be
-cutting at 0.65. The curve (required `chart_calibration.png`) shows my model tracks the perfect
+cutting at 0.65. The curve (required `charts/chart_calibration.png`) shows my model tracks the perfect
 diagonal within ~3–4 points — it has the calibration it needs *and* the discrimination to back it.
 
 ---

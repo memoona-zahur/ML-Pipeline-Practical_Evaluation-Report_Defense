@@ -25,8 +25,8 @@ REQUIRED_TOP_LEVEL_KEYS = {
     "final_model",
 }
 REQUIRED_CHARTS = [
-    "chart_model_comparison.png",
-    "chart_calibration.png",
+    "charts/chart_model_comparison.png",
+    "charts/chart_calibration.png",
 ]
 REQUIRED_DOCS = [
     "evaluation_report.md",
@@ -70,3 +70,15 @@ def test_report_and_defense_exist_and_nonempty():
     for name in REQUIRED_DOCS:
         p = Path(name)
         assert p.exists() and len(p.read_text().strip()) > 200
+
+
+def test_data_artifacts_exist():
+    for name in ["data/loans.csv", "data/loans.sha256"]:
+        p = Path(name)
+        assert p.exists() and p.stat().st_size > 50
+
+
+def test_loans_csv_matches_spec_shape():
+    df = pd.read_csv("data/loans.csv")
+    assert df.shape == (1200, 6)
+    assert df["credit_score"].isna().sum() == 90

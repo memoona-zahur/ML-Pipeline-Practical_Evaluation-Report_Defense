@@ -7,15 +7,14 @@ defended final model, with an evaluation report, defense answers and two test su
 
 | file | role |
 |------|------|
-| `friday_pipeline.ipynb` | the pipeline. Restart & Run All safe; regenerates every artefact below |
+| `friday_pipeline.ipynb` | the pipeline **as a report** — markdown cells carry the full story; Restart & Run All safe |
 | `model_metrics.json` | machine-readable metrics for all 4 models (+ imputation value, final model) |
-| `chart_model_comparison.png` | required chart — 5 metrics × 4 models on held-out test |
-| `chart_calibration.png` | required chart — calibration curve of the final model |
-| `chart_roc_curves.png` | bonus chart — ROC of all models |
+| `charts/` | required: `chart_model_comparison.png`, `chart_calibration.png` — bonus: `chart_roc_curves.png`, `chart_error_analysis.png`, `chart_feature_importance.png`, `chart_imputation_leak.png` |
+| `data/` | `loans.csv` (seed-55 dataset) + `loans.sha256` fingerprint (traceable) |
 | `evaluation_report.md` | the evaluation report (question-framed, all real numbers) |
 | `defense_answers.md` | answers to the 5 defense questions citing the actual metrics |
 | `test_friday_sample.py` | structural sample self-check (same spirit as the provided one) |
-| `test_friday_full.py` | full behavioural/anti-leakage suite (13 checks, beyond minimum) |
+| `test_friday_full.py` | full behavioural/anti-leakage suite (**~110 checks**, Parts A–J, beyond minimum) |
 | `requirements.txt` | pinned, verified environment |
 
 ## Contract (literal, non-negotiable)
@@ -47,3 +46,14 @@ jupyter nbconvert --to notebook --execute friday_pipeline.ipynb   # or Jupyter: 
 python3 -m pytest test_friday_sample.py -q
 python3 -m pytest test_friday_full.py -q
 ```
+
+## Testing
+
+```bash
+python3 -m pytest test_friday_sample.py test_friday_full.py -q   # full gate: 112 checks
+```
+
+The full suite re-derives the entire contract from the seeds (no numbers hard-coded in
+tests) and additionally asserts: no chart content is edge-clipped, the data sha256 matches,
+DGP ordering (Contract > Self-Employed > Salaried default rates), and that calibration is
+computed on the final model only.

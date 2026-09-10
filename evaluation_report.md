@@ -6,6 +6,8 @@
 **Models:** dummy most-frequent baseline, logistic regression, decision tree, random forest — all fitted on `X_train` only
 **Scoring:** held-out `X_test` only — accuracy, precision, recall, f1, ROC-AUC
 **Final model:** `random_forest` (decided by data + bootstrap CI, not by hand-waving)
+**Charts:** `charts/` (2 required + 4 bonus), **Data:** `data/loans.csv` (+ sha256)
+**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (~110 checks), all green
 
 ---
 
@@ -128,9 +130,36 @@ Uniform 5-bin calibration of the forest's probabilities on the held-out test:
 | 5 | 0.92 | 0.90 | 0.022 |
 
 Max deviation ~3.6 points — **well-calibrated**; probabilities are usable directly for risk
-thresholding & pricing, not just ranking. See `chart_calibration.png`.
+thresholding & pricing, not just ranking. See `charts/chart_calibration.png` and (bonus) the ROC
+curves in `charts/chart_roc_curves.png`.
 
-## 6. Headline findings (top-performer takeaways)
+## 6. Bonus charts (beyond the minimum)
+
+| chart | what it shows |
+|-------|---------------|
+| `charts/chart_roc_curves.png` | discrimination of all 4 models vs the AUC-0.50 diagonal |
+| `charts/chart_error_analysis.png` | wrong-vs-correct row means per feature (the signal vs noise story visually) |
+| `charts/chart_feature_importance.png` | what the forest uses: `credit_score` ~0.60, then the ratio-bearing features |
+| `charts/chart_imputation_leak.png` | train-only mean (used, blue) vs full-data mean (leaked, grey) — the +0.2672 choice made visible |
+
+All six charts follow one deliberate colour scheme (see §7) — the same model always has the same colour,
+grey is reserved for the "no-information" floor, and legends sit below the axes so text can never overlap data.
+
+## 7. Colour policy (why these colours, exactly)
+
+| colour | hex | used for | reasoning |
+|--------|-----|----------|-----------|
+| grey | `#8C8C8C` | baseline bar + floor/perfect reference lines | achromatic = "no information" — the neutral floor, never reused for a model |
+| blue | `#2C7FB8` | logistic regression | cool, linear/parametric family; distinct from tree/forest |
+| green | `#31A354` | decision tree | hierarchical/branching metaphor, distinguishable even by colour-blind viewers (also differs by position/shape) |
+| purple-bordeaux | `#7A4BB8` | random forest (final model) | the "winner" accent, kept consistent with the forest-purple used in previous weeks' notebooks |
+| deep-red | `#9E2A2B` | errors only (error chart) | reserved for "mistake" semantics |
+
+Rules enforced by construction: model-colour mapping is global (§14 in the notebook), bar values are
+labelled, y-axes start at 0 (or explicit y-lim), and the test suite asserts no chart content touches
+the image border.
+
+## 8. Headline findings (top-performer takeaways)
 
 1. **The baseline is 0.60 and trivially trivial** — most-frequent says "everyone defaults"
    (acc 0.60, recall 1.0, **AUC 0.50**). Any model earning ≥0.72 accuracy is doing real work.
@@ -142,10 +171,10 @@ thresholding & pricing, not just ranking. See `chart_calibration.png`.
    high-credit-score applicants (CI [+10, +36] excludes 0) and `Self-Employed` rows.
 5. **Probabilities are trustworthy** — calibration within ~3.6 points of perfect across 5 bins.
 
-## 7. Reproducibility
+## 9. Reproducibility
 
 - Every value above is re-derived on a fresh kernel run (`Restart & Run All`) from seed 55 —
   nothing hard-coded.
-- `model_metrics.json`, both required charts and the bonus ROC curve regenerated in the run.
-- `test_friday_full.py` re-runs the whole contract independently: 13 behavioural/anti-leakage
-  assertions green (see `pytest test_friday_full.py`).
+- `model_metrics.json`, all 6 charts in `charts/` and `data/loans.csv` are regenerated in the run.
+- `test_friday_full.py` re-derives the whole contract from the seeds: ~110 behavioural/anti-leakage
+  assertions green (Parts A–J, see `python3 -m pytest test_friday_full.py -q`).
