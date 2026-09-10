@@ -122,6 +122,26 @@ class TestPartA_Dataset:
         assert (load_loans().isna().sum() == load_loans().isna().sum()).all()
 
 
+
+    def test_missingness_is_mcar_independent_of_observed_cols(self):
+        from scipy.stats import chi2_contingency
+        loans = load_loans()
+        miss = loans["credit_score"].isna()
+        # under MCAR, the missing flag must be independent of the observed columns
+        for col in ["applicant_income", "loan_amount"]:
+            a = loans.loc[~miss, col].mean()
+            b = loans.loc[miss, col].mean()
+            assert abs(a - b) < a * 0.10, (col, a, b)  # mean shift < 10% via sampling noise
+        _, p_, _, _ = chi2_contingency(pd.crosstab(loans["employment_type"], miss))
+        assert p_ > 0.05, p_  # cannot reject independence -> MCAR holds
+
+    def test_loans_csv_reproduces_notebook_contract(self):
+        df = pd.read_csv("data/loans.csv")
+        assert list(df.columns) == ["applicant_id", "employment_type", "credit_score",
+                                    "applicant_income", "loan_amount", "default"]
+        assert (df["credit_score"].isna().sum(), len(df)) == (90, 1200)
+
+
 # ============================================================ PART B — features
 class TestPartB_FeatureContract:
     EXPECTED = ["credit_score", "applicant_income", "loan_amount",
@@ -430,3 +450,114 @@ class TestPartJ_Artefacts:
     def test_requirements_pins_versions(self):
         req = Path("requirements.txt").read_text()
         assert "==" in req and "scikit-learn" in req
+
+
+# ============================================================ PART K — numeric fidelity
+class TestPartK_NumericFidelity:
+    """Re-runs the exact pipeline from seeds; the committed JSON must match it —
+    proving the report is not hand-written numbers."""
+
+    def _rerun_metrics(self):
+        loans = load_loans()
+        X = loans[["credit_score", "applicant_income", "loan_amount", "employment_type"]]
+        X = pd.get_dummies(X, columns=["employment_type"], drop_first=True)
+        y = loans["default"]
+        Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        fill = Xtr["credit_score"].mean()
+        Xtr = Xtr.fillna(fill); Xte = Xte.fillna(fill)
+
+        def ev(clf):
+            clf.fit(Xtr, ytr)
+            p = clf.predict(Xte)
+            pr = clf.predict_proba(Xte)[:, 1] if hasattr(clf, "predict_proba") else np.full(len(yte), ytr.mean())
+            return (accuracy_score(yte, p), precision_score(yte, p), recall_score(yte, p),
+                    f1_score(yte, p), roc_auc_score(yte, pr))
+
+        out = {
+            "baseline": ev(DummyClassifier(strategy="most_frequent")),
+            "logistic_regression": ev(LogisticRegression(max_iter=2000)),
+            "decision_tree": ev(DecisionTreeClassifier(max_depth=3, random_state=42)),
+            "random_forest": ev(RandomForestClassifier(n_estimators=200, random_state=42)),
+        }
+        return Xtr, ytr, out
+
+    @pytest.mark.parametrize("model", ["baseline", "logistic_regression", "decision_tree", "random_forest"])
+    @pytest.mark.parametrize("metric,idx", [("accuracy", 0), ("precision", 1), ("recall", 2), ("f1", 3), ("roc_auc", 4)])
+    def test_json_matches_independent_rerun(self, model, metric, idx):
+        _, _, out = self._rerun_metrics()
+        got = read_metrics()[model][metric]
+        assert abs(got - out[model][idx]) < 1e-4, (model, metric, got, out[model][idx])
+
+    def test_imputation_value_matches_rerun(self):
+        loans = load_loans()
+        Xtr = pd.get_dummies(loans[["credit_score", "applicant_income", "loan_amount", "employment_type"]],
+                             columns=["employment_type"], drop_first=True)
+        Xtr, Xte, ytr, yte = train_test_split(Xtr, loans["default"], test_size=0.2,
+                                              random_state=42, stratify=loans["default"])
+        mm = read_metrics()
+        assert abs(mm["credit_score_imputation_value"] - Xtr["credit_score"].mean()) < 1e-4
+
+    def test_bootstrap_ci_rerun_crosses_zero(self):
+        loans = load_loans()
+        X = pd.get_dummies(loans[["credit_score", "applicant_income", "loan_amount", "employment_type"]],
+                           columns=["employment_type"], drop_first=True)
+        y = loans["default"]
+        Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        fill = Xtr["credit_score"].mean()
+        Xtr = Xtr.fillna(fill); Xte = Xte.fillna(fill)
+        rf = RandomForestClassifier(n_estimators=200, random_state=42).fit(Xtr, ytr)
+        lr = LogisticRegression(max_iter=2000).fit(Xtr, ytr)
+        prf = rf.predict_proba(Xte)[:, 1]; plr = lr.predict_proba(Xte)[:, 1]
+        rng = np.random.default_rng(42)
+        yarr = yte.to_numpy(); n = len(yte); d = np.empty(500)
+        for i in range(500):
+            ids = rng.integers(0, n, size=n)
+            d[i] = roc_auc_score(yarr[ids], prf[ids]) - roc_auc_score(yarr[ids], plr[ids])
+        lo, hi = np.percentile(d, [2.5, 97.5])
+        assert lo < 0 < hi, (lo, hi)
+
+    def test_error_analysis_credit_score_ci_excludes_zero(self):
+        # the notebook's only *supported* error pattern must hold statistically
+        loans = load_loans()
+        X = pd.get_dummies(loans[["credit_score", "applicant_income", "loan_amount", "employment_type"]],
+                           columns=["employment_type"], drop_first=True)
+        y = loans["default"]
+        Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        fill = Xtr["credit_score"].mean()
+        Xtr = Xtr.fillna(fill); Xte = Xte.fillna(fill)
+        rf = RandomForestClassifier(n_estimators=200, random_state=42).fit(Xtr, ytr)
+        pred = rf.predict(Xte)
+        mis = Xte[pred != yte.to_numpy()]
+        cor = Xte[pred == yte.to_numpy()]
+        rng = np.random.default_rng(7)
+        d = np.empty(1000)
+        for i in range(1000):
+            d[i] = mis["credit_score"].sample(n=len(mis), replace=True, random_state=rng).mean() \
+                 - cor["credit_score"].sample(n=len(cor), replace=True, random_state=rng).mean()
+        lo, hi = np.percentile(d, [2.5, 97.5])
+        assert lo > 0, (lo, hi)  # mistakes strictly higher credit_score
+
+    def test_calibration_is_well_calibrated(self):
+        loans = load_loans()
+        X = pd.get_dummies(loans[["credit_score", "applicant_income", "loan_amount", "employment_type"]],
+                           columns=["employment_type"], drop_first=True)
+        y = loans["default"]
+        Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        fill = Xtr["credit_score"].mean()
+        Xtr = Xtr.fillna(fill); Xte = Xte.fillna(fill)
+        rf = RandomForestClassifier(n_estimators=200, random_state=42).fit(Xtr, ytr)
+        pr = rf.predict_proba(Xte)[:, 1]
+        frac, mean = calibration_curve(yte, pr, n_bins=5, strategy="uniform")
+        assert abs(frac - mean).max() < 0.08  # honest probabilities
+
+    @pytest.mark.parametrize("needle", [
+        "default 0.50", "mean (and not median)", "Uniform 5-bin", "Decision metric = f1",
+        "stratify=y", "skew", "colour policy", "teal", "crosses zero",
+    ])
+    def test_notebook_marks_reasoning_for_every_choice(self, needle):
+        md_ = notebook_markdown()
+        assert needle in md_, f"missing reasoning: {needle}"
+
+    def test_report_calls_out_the_leak_measure(self):
+        r = Path("evaluation_report.md").read_text()
+        assert "0.2672" in r and "leak" in r.lower()

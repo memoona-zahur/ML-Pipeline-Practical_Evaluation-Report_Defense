@@ -7,7 +7,7 @@
 **Scoring:** held-out `X_test` only — accuracy, precision, recall, f1, ROC-AUC
 **Final model:** `random_forest` (decided by data + bootstrap CI, not by hand-waving)
 **Charts:** `charts/` (2 required + 4 bonus), **Data:** `data/loans.csv` (+ sha256)
-**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (~110 checks), all green
+**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (~140 checks), all green
 
 ---
 
@@ -149,11 +149,12 @@ grey is reserved for the "no-information" floor, and legends sit below the axes 
 
 | colour | hex | used for | reasoning |
 |--------|-----|----------|-----------|
-| grey | `#8C8C8C` | baseline bar + floor/perfect reference lines | achromatic = "no information" — the neutral floor, never reused for a model |
+| grey | `#8C8C8C` | baseline bar + floor/perfect reference lines + *correct* rows (error chart) | achromatic = "no information" — the neutral floor, never reused for a model |
 | blue | `#2C7FB8` | logistic regression | cool, linear/parametric family; distinct from tree/forest |
 | green | `#31A354` | decision tree | hierarchical/branching metaphor, distinguishable even by colour-blind viewers (also differs by position/shape) |
 | purple-bordeaux | `#7A4BB8` | random forest (final model) | the "winner" accent, kept consistent with the forest-purple used in previous weeks' notebooks |
-| deep-red | `#9E2A2B` | errors only (error chart) | reserved for "mistake" semantics |
+| deep-red | `#9E2A2B` | misclassified rows (error chart) | reserved for "mistake" semantics only — never a model |
+| teal | `#17919A` | chosen imputation value (leak chart) | "used/selected" semantic for a non-model decision point |
 
 Rules enforced by construction: model-colour mapping is global (§14 in the notebook), bar values are
 labelled, y-axes start at 0 (or explicit y-lim), and the test suite asserts no chart content touches
@@ -177,4 +178,4 @@ the image border.
   nothing hard-coded.
 - `model_metrics.json`, all 6 charts in `charts/` and `data/loans.csv` are regenerated in the run.
 - `test_friday_full.py` re-derives the whole contract from the seeds: ~110 behavioural/anti-leakage
-  assertions green (Parts A–J, see `python3 -m pytest test_friday_full.py -q`).
+  assertions green (Parts A–K, see `python3 -m pytest test_friday_full.py -q`).

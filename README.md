@@ -14,7 +14,7 @@ defended final model, with an evaluation report, defense answers and two test su
 | `evaluation_report.md` | the evaluation report (question-framed, all real numbers) |
 | `defense_answers.md` | answers to the 5 defense questions citing the actual metrics |
 | `test_friday_sample.py` | structural sample self-check (same spirit as the provided one) |
-| `test_friday_full.py` | full behavioural/anti-leakage suite (**~110 checks**, Parts A–J, beyond minimum) |
+| `test_friday_full.py` | full behavioural/anti-leakage suite (**~140 checks**, Parts A–K, beyond minimum) |
 | `requirements.txt` | pinned, verified environment |
 
 ## Contract (literal, non-negotiable)
@@ -50,7 +50,7 @@ python3 -m pytest test_friday_full.py -q
 ## Testing
 
 ```bash
-python3 -m pytest test_friday_sample.py test_friday_full.py -q   # full gate: 112 checks
+python3 -m pytest test_friday_sample.py test_friday_full.py -q   # full gate: 148 checks
 ```
 
 The full suite re-derives the entire contract from the seeds (no numbers hard-coded in
