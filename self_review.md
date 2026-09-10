@@ -98,11 +98,12 @@ All 5 brief questions answered in `defense_answers.md`, each citing the submissi
 
 ## H. Beyond the minimum (transparency + engineering)
 
-- 6 charts (2 required + 4 bonus: ROC, error analysis, feature importances, imputation-leak visual),
+- 8 charts (2 required + 6 bonus: ROC, PR curve, error analysis, confusion matrix, feature importances,
+  imputation-leak visual),
   all edge-clean and on one semantic colour policy (documented in notebook §14 + report §7).
 - `data/loans.csv` + sha256 fingerprint for byte-exact reproducibility.
 - Pinned `requirements.txt`; the exact tested versions printed by the notebook itself.
-- ~154 automated checks across `test_friday_sample.py` + `test_friday_full.py` (Parts A–K),
+- ~158 automated checks across `test_friday_sample.py` + `test_friday_full.py` (Parts A–K),
   including end-to-end **numeric-fidelity** re-runs of the whole pipeline.
 - One honest limitation is stated in the report (50/50 split single draw; no feature scaling;
   synthetic data).

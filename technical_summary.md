@@ -103,11 +103,12 @@ friday_pipeline.ipynb        the whole pipeline as a report-style notebook (mark
 model_metrics.json           the graded JSON (4 models × 5 metrics + imputation value + final_model)
 chart_model_comparison.png   REQUIRED output (repo root AND charts/)
 chart_calibration.png        REQUIRED output (repo root AND charts/)
-charts/                      2 required + 4 bonus charts (ROC, error analysis, feature importance, imputation leak)
+charts/                      2 required + 6 bonus charts (ROC, PR, error analysis, confusion matrix,
+                               feature importance, imputation leak)
 evaluation_report.md         plain-language report (required)
 defense_answers.md           written defense, Q1–Q5 (required)
 test_friday_sample.py        structural self-check (passes the assignment's own sample check)
-test_friday_full.py          Parts A–K behavioural suite (~154 checks) incl. numeric-fidelity re-runs
+test_friday_full.py          Parts A–K behavioural suite (~158 checks) incl. numeric-fidelity re-runs
 technical_summary.md         this file
 self_review.md               point-by-point requirement verification + hidden-test readiness
 requirements.txt             pinned environment

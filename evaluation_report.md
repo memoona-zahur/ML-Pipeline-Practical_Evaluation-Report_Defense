@@ -6,8 +6,8 @@
 **Models:** dummy most-frequent baseline, logistic regression, decision tree, random forest — all fitted on `X_train` only
 **Scoring:** held-out `X_test` only — accuracy, precision, recall, f1, ROC-AUC
 **Final model:** `random_forest` (decided by data + bootstrap CI, not by hand-waving)
-**Charts:** `charts/` (2 required + 4 bonus) — the 2 required also at **repo root** (exactly where the assignment's own self-check opens them), **Data:** `data/loans.csv` (+ sha256)
-**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (**~154 checks**, Parts A–K), all green
+**Charts:** `charts/` (2 required + 6 bonus) — the 2 required also at **repo root** (exactly where the assignment's own self-check opens them), **Data:** `data/loans.csv` (+ sha256)
+**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (**~158 checks**, Parts A–K), all green
 
 ---
 
@@ -138,11 +138,13 @@ curves in `charts/chart_roc_curves.png`.
 | chart | what it shows |
 |-------|---------------|
 | `charts/chart_roc_curves.png` | discrimination of all 4 models vs the AUC-0.50 diagonal |
+| `charts/chart_pr_curve.png` | the precision/recall trade-off behind the Q3 "accuracy vs recall" defense, with the forest's **@0.5 operating point** (P 0.79 / R 0.83) marked |
 | `charts/chart_error_analysis.png` | wrong-vs-correct row means per feature (the signal vs noise story visually) |
+| `charts/chart_confusion_matrix.png` | the final model's raw 2×2: 24 missed defaulters (FN) vs 32 false alarms (FP) of 240 |
 | `charts/chart_feature_importance.png` | what the forest uses: `credit_score` ~0.60, then the ratio-bearing features |
 | `charts/chart_imputation_leak.png` | train-only mean (used, teal) vs full-data mean (leaked, grey) — the +0.2672 choice made visible |
 
-All six charts follow one deliberate colour scheme (see §7) — the same model always has the same colour,
+All eight charts follow one deliberate colour scheme (see §7) — the same model always has the same colour,
 grey is reserved for the "no-information" floor, and legends sit below the axes so text can never overlap data.
 
 ## 7. Colour policy (why these colours, exactly)
@@ -154,11 +156,12 @@ grey is reserved for the "no-information" floor, and legends sit below the axes 
 | green | `#31A354` | decision tree | hierarchical/branching metaphor, distinguishable even by colour-blind viewers (also differs by position/shape) |
 | purple-bordeaux | `#7A4BB8` | random forest (final model) | the "winner" accent, kept consistent with the forest-purple used in previous weeks' notebooks |
 | deep-red | `#9E2A2B` | misclassified rows (error chart) | reserved for "mistake" semantics only — never a model |
-| teal | `#17919A` | chosen imputation value (leak chart) | "used/selected" semantic for a non-model decision point |
+| teal | `#17919A` | chosen imputation value (leak chart) / chosen operating point (PR chart) | "used/selected" semantic for a non-model decision point |
 
-Rules enforced by construction: model-colour mapping is global (§14 in the notebook), bar values are
-labelled, y-axes start at 0 (or explicit y-lim), and the test suite asserts no chart content touches
-the image border.
+Rules enforced by construction: model-colour mapping is global (§14 in the notebook), the confusion
+matrix uses the **purple family** as a gradient for the final model (same colour → same model), bar
+values are labelled, y-axes start at 0 (or explicit y-lim), and the test suite asserts no chart
+content touches the image border.
 
 ## 8. Headline findings (top-performer takeaways)
 
@@ -185,7 +188,7 @@ re-validate on repeated/aligned splits and on live data before relying on the ex
 
 - Every value above is re-derived on a fresh kernel run (`Restart & Run All`) from seed 55 —
   nothing hard-coded.
-- `model_metrics.json`, all 6 charts in `charts/`, the 2 required root-level charts and
+- `model_metrics.json`, all 8 charts in `charts/`, the 2 required root-level charts and
   `data/loans.csv` are regenerated in the run.
-- `test_friday_full.py` re-derives the whole contract from the seeds: **~154 checks** green
+- `test_friday_full.py` re-derives the whole contract from the seeds: **~158 checks** green
   (Parts A–K, see `python3 -m pytest test_friday_sample.py test_friday_full.py -q`).

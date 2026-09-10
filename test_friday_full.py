@@ -363,7 +363,8 @@ class TestPartH_Charts:
     ROOT_REQUIRED = ["chart_model_comparison.png", "chart_calibration.png"]
     REQUIRED = ["charts/chart_model_comparison.png", "charts/chart_calibration.png"]
     BONUS = ["charts/chart_roc_curves.png", "charts/chart_error_analysis.png",
-             "charts/chart_feature_importance.png", "charts/chart_imputation_leak.png"]
+             "charts/chart_feature_importance.png", "charts/chart_imputation_leak.png",
+             "charts/chart_pr_curve.png", "charts/chart_confusion_matrix.png"]
     ALL = ROOT_REQUIRED + REQUIRED + BONUS
 
     @pytest.mark.parametrize("name", ROOT_REQUIRED)
@@ -387,7 +388,8 @@ class TestPartH_Charts:
     def test_charts_directory_has_expected_files(self):
         have = {p.name for p in Path("charts").glob("*.png")}
         want = {"chart_model_comparison.png", "chart_calibration.png", "chart_roc_curves.png",
-                "chart_error_analysis.png", "chart_feature_importance.png", "chart_imputation_leak.png"}
+                "chart_error_analysis.png", "chart_feature_importance.png", "chart_imputation_leak.png",
+                "chart_pr_curve.png", "chart_confusion_matrix.png"}
         assert want <= have
 
     def test_legend_placed_below_axes(self):
