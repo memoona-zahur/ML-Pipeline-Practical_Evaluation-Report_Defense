@@ -78,18 +78,17 @@ degenerating into accepting everyone.
 
 Accuracy is the wrong lens for that: with a 60% default rate, **predicting "everyone defaults"**
 already scores 0.60 accuracy — that is literally our baseline (recall 1.0, F1 0.75, AUC 0.50).
-Accuracy optimizes against the majority, so a naive accuracy-maximizer on imbalanced credit data will
-happily ship a model that ignores the minority/non-default and still "looks fine". Conversely,
-optimizing recall *alone* in the other direction means a risk of approving everything to catch
-everyone: recall 1.00 but precision only 0.60 — you're back to the baseline, just with extra steps.
+Accuracy optimizes against the majority, so a naive accuracy-maximizer on imbalanced credit data will happily ship a model that ignores the minority/non-default and still "looks fine". Conversely,
+optimizing recall *alone* can collapse into predicting everyone as default: recall reaches 1.00, but
+precision falls to 0.60 — exactly the baseline, just with extra steps.
 
 That is why I optimized **F1** — the harmonic mean of recall and precision, so it punishes *both*
 the missed-defaulter error (false negative) and the over-cautious rejection of good borrowers (false
 positive). On the held-out test the final forest is: **recall 0.8333, precision 0.7895, F1 0.8108** —
-it catches defaulters (the recall side) without collapsing into approve-everyone (precision stayed at
-0.7895, far above the baseline's 0.60). In one line: optimize for the class whose failure you cannot
-afford, measured with a metric that also keeps the other error in check — accuracy alone is
-meaningless under 60/40 imbalance.
+it catches defaulters (the recall side) without collapsing into the blanket "predict everyone as
+default" baseline strategy (precision stayed at 0.7895, far above the baseline's 0.60). In one line:
+optimize for the class whose failure you cannot afford, measured with a metric that also keeps the
+other error in check — accuracy alone is meaningless under 60/40 imbalance.
 
 ---
 
