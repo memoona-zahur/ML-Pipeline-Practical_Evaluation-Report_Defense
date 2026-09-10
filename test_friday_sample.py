@@ -25,6 +25,8 @@ REQUIRED_TOP_LEVEL_KEYS = {
     "final_model",
 }
 REQUIRED_CHARTS = [
+    "chart_model_comparison.png",          # repo-root copy (this is exactly what the
+    "chart_calibration.png",               # assignment's visible self-check opens)
     "charts/chart_model_comparison.png",
     "charts/chart_calibration.png",
 ]

@@ -6,8 +6,8 @@
 **Models:** dummy most-frequent baseline, logistic regression, decision tree, random forest — all fitted on `X_train` only
 **Scoring:** held-out `X_test` only — accuracy, precision, recall, f1, ROC-AUC
 **Final model:** `random_forest` (decided by data + bootstrap CI, not by hand-waving)
-**Charts:** `charts/` (2 required + 4 bonus), **Data:** `data/loans.csv` (+ sha256)
-**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (~140 checks), all green
+**Charts:** `charts/` (2 required + 4 bonus) — the 2 required also at **repo root** (exactly where the assignment's own self-check opens them), **Data:** `data/loans.csv` (+ sha256)
+**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (**~154 checks**, Parts A–K), all green
 
 ---
 
@@ -35,7 +35,7 @@ The split runs while the 90 missing values are still present. After the split:
 | test  | 240 | 19 | 0.6000 |
 
 Stratification held perfectly (60.00% / 60.00%). The NaNs are now split too, proving the split
-happened **before** imputation (73 NaNs could never have survived an impute-then-split order).
+happened **before** imputation (71+19 = 90 NaNs could never have survived an impute-then-split order).
 
 ### 1.3 Imputation — train-only statistic, one value, both folds
 Missing `credit_score` was filled with the **mean computed from `X_train` alone**:
@@ -108,7 +108,7 @@ feature-by-feature, with a bootstrap CI on each mean difference (2000 resamples)
 
 | feature | wrong-mean | correct-mean | diff CI | conclusion |
 |---------|-----------|--------------|---------|------------|
-| credit_score | 666.2 | 643.2 | [+10.00, +36.13] | **CI excludes 0** → the forest genuinely misreads *higher-credit-score* applicants (the DGP places some "good" scores just above the boundary) |
+| credit_score | 666.2 | 643.2 | [+9.53, +36.47] | **CI excludes 0** → the forest genuinely misreads *higher-credit-score* applicants (the DGP places some "good" scores just above the boundary) |
 | applicant_income | 55879 | 55901 | [−6159, +5790] | plausible noise |
 | loan_amount | 15995 | 15624 | [−1694, +2333] | plausible noise |
 
@@ -140,7 +140,7 @@ curves in `charts/chart_roc_curves.png`.
 | `charts/chart_roc_curves.png` | discrimination of all 4 models vs the AUC-0.50 diagonal |
 | `charts/chart_error_analysis.png` | wrong-vs-correct row means per feature (the signal vs noise story visually) |
 | `charts/chart_feature_importance.png` | what the forest uses: `credit_score` ~0.60, then the ratio-bearing features |
-| `charts/chart_imputation_leak.png` | train-only mean (used, blue) vs full-data mean (leaked, grey) — the +0.2672 choice made visible |
+| `charts/chart_imputation_leak.png` | train-only mean (used, teal) vs full-data mean (leaked, grey) — the +0.2672 choice made visible |
 
 All six charts follow one deliberate colour scheme (see §7) — the same model always has the same colour,
 grey is reserved for the "no-information" floor, and legends sit below the axes so text can never overlap data.
@@ -169,13 +169,23 @@ the image border.
 3. **Random forest wins by the decision metric, with a CI-backed verdict** — F1 0.8108 with
    LR's AUC edge (0.8448 vs 0.8249) *not significant* (bootstrap CI crosses zero).
 4. **Errors are not random** — a statistically-supported pattern: the forest misclassifies
-   high-credit-score applicants (CI [+10, +36] excludes 0) and `Self-Employed` rows.
+   high-credit-score applicants (CI [+9.5, +36.5] excludes 0) and `Self-Employed` rows.
 5. **Probabilities are trustworthy** — calibration within ~3.6 points of perfect across 5 bins.
+
+## 8.5 One honest limitation
+
+Every headline number is a **single-draw point estimate** — one 80/20 split (seed 42) gives 240 test
+rows, so the RF-vs-LR margin (F1 0.8108 vs 0.7960, acc 0.7667 vs 0.7458) could shift by a few points
+under a different split. I report the bootstrap CI for the one comparison that decided the model
+(AUC gap [−0.0487, +0.0086]) but that interval covers only *resampling* uncertainty on this one test
+set, not the *sampling* variability of the dataset itself. A production hand-over would therefore
+re-validate on repeated/aligned splits and on live data before relying on the exact figures here.
 
 ## 9. Reproducibility
 
 - Every value above is re-derived on a fresh kernel run (`Restart & Run All`) from seed 55 —
   nothing hard-coded.
-- `model_metrics.json`, all 6 charts in `charts/` and `data/loans.csv` are regenerated in the run.
-- `test_friday_full.py` re-derives the whole contract from the seeds: ~110 behavioural/anti-leakage
-  assertions green (Parts A–K, see `python3 -m pytest test_friday_full.py -q`).
+- `model_metrics.json`, all 6 charts in `charts/`, the 2 required root-level charts and
+  `data/loans.csv` are regenerated in the run.
+- `test_friday_full.py` re-derives the whole contract from the seeds: **~154 checks** green
+  (Parts A–K, see `python3 -m pytest test_friday_sample.py test_friday_full.py -q`).

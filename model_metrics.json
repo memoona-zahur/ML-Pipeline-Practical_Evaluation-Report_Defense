@@ -6,7 +6,7 @@
     "recall": 1.0,
     "roc_auc": 0.5
   },
-  "credit_score_imputation_value": 647.3138,
+  "credit_score_imputation_value": 647.3138357705287,
   "decision_tree": {
     "accuracy": 0.7208,
     "f1": 0.7633,

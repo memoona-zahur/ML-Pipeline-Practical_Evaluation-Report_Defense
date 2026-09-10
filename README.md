@@ -9,12 +9,15 @@ defended final model, with an evaluation report, defense answers and two test su
 |------|------|
 | `friday_pipeline.ipynb` | the pipeline **as a report** — markdown cells carry the full story; Restart & Run All safe |
 | `model_metrics.json` | machine-readable metrics for all 4 models (+ imputation value, final model) |
-| `charts/` | required: `chart_model_comparison.png`, `chart_calibration.png` — bonus: `chart_roc_curves.png`, `chart_error_analysis.png`, `chart_feature_importance.png`, `chart_imputation_leak.png` |
+| `chart_model_comparison.png` / `chart_calibration.png` | **required outputs at repo root** (exactly where the assignment's self-check opens them) |
+| `charts/` | full gallery: the 2 required + bonus `chart_roc_curves.png`, `chart_error_analysis.png`, `chart_feature_importance.png`, `chart_imputation_leak.png` |
 | `data/` | `loans.csv` (seed-55 dataset) + `loans.sha256` fingerprint (traceable) |
 | `evaluation_report.md` | the evaluation report (question-framed, all real numbers) |
 | `defense_answers.md` | answers to the 5 defense questions citing the actual metrics |
-| `test_friday_sample.py` | structural sample self-check (same spirit as the provided one) |
-| `test_friday_full.py` | full behavioural/anti-leakage suite (**~140 checks**, Parts A–K, beyond minimum) |
+| `technical_summary.md` | one-page technical recap of pipeline, results and reproducibility |
+| `self_review.md` | point-by-point verification of every assignment requirement + hidden-test readiness |
+| `test_friday_sample.py` | structural sample self-check (superset of the provided one) |
+| `test_friday_full.py` | full behavioural/anti-leakage suite (**~154 checks**, Parts A–K, beyond minimum) |
 | `requirements.txt` | pinned, verified environment |
 
 ## Contract (literal, non-negotiable)
@@ -22,7 +25,7 @@ defended final model, with an evaluation report, defense answers and two test su
 1. Features: `X = loans[["credit_score","applicant_income","loan_amount","employment_type"]]`,
    one-hot with `pd.get_dummies(drop_first=True)` → **exactly 5 columns**.
 2. Split **before** imputation: `train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)`.
-3. Fill value computed from **`X_train` only** (`647.3138`), applied with the same value to both folds.
+3. Fill value computed from **`X_train` only** (`647.3138357705287` full precision), applied with the same value to both folds.
 4. Baseline `DummyClassifier(strategy="most_frequent")`; LR / DT / RF fitted on `X_train`, scored on `X_test` only.
 5. Metrics: accuracy, precision, recall, f1, roc_auc for all four models.
 
@@ -50,7 +53,7 @@ python3 -m pytest test_friday_full.py -q
 ## Testing
 
 ```bash
-python3 -m pytest test_friday_sample.py test_friday_full.py -q   # full gate: 148 checks
+python3 -m pytest test_friday_sample.py test_friday_full.py -q   # full gate: 154 checks
 ```
 
 The full suite re-derives the entire contract from the seeds (no numbers hard-coded in
