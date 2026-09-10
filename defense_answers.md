@@ -106,9 +106,9 @@ other error in check — accuracy alone is meaningless under 60/40 imbalance.
 
 Walking through it: at low risk the model says ~11–29% and the data defaults ~14–33%
 (±~3 points); at mid risk ~53% → 53% (essentially perfect); at high risk ~71–92% → 70–90% (±1.5–2
-points). The worst bin error is 3.6 points and the average is about 2 points. In plain terms: when
-the model outputs "0.90", about 90% of those clients actually default — the probability *is* a
-frequency.
+points). The worst bin error is 3.6 points and the average is about 2 points. In plain terms: in the
+highest-risk bin the predictions average about 0.92 and the observed default rate is about 0.90 —
+the probability *is* a frequency.
 
 So **yes, with two conditions** — I would trust these probabilities to set **coarse risk tiers**
 (bucket "reject", "watch", "price-up"), because a ±3-point error cannot flip a 0.15 into a 0.65. I
