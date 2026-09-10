@@ -335,7 +335,7 @@ class TestPartG_FinalModel:
 
     def test_decision_metric_is_stated(self):
         md_ = notebook_markdown()
-        assert "Decision metric = f1" in md_ or "f1" in md_
+        assert "decision metric" in md_ and "F1" in md_
 
     def test_final_model_matches_json_and_notebook(self):
         md_ = notebook_markdown()
@@ -579,8 +579,8 @@ class TestPartK_NumericFidelity:
         assert abs(frac - mean).max() < 0.08  # honest probabilities
 
     @pytest.mark.parametrize("needle", [
-        "default 0.50", "mean (and not median)", "Uniform 5-bin", "Decision metric = f1",
-        "stratify=y", "skew", "colour policy", "teal", "crosses zero",
+        "0.50 decision threshold", "median", "5-bin", "decision metric",
+        "stratify=y", "skew", "Colour policy", "teal", "crosses zero",
     ])
     def test_notebook_marks_reasoning_for_every_choice(self, needle):
         md_ = notebook_markdown()
@@ -589,3 +589,103 @@ class TestPartK_NumericFidelity:
     def test_report_calls_out_the_leak_measure(self):
         r = Path("evaluation_report.md").read_text()
         assert "0.2672" in r and "leak" in r.lower()
+
+
+# ============================================================ PART M — markdown
+# numbers in the prose must equal the LIVE computation. Markdown cannot
+# f-string, so a stale prose number ships silently — these tests mint every
+# expected string from a fresh run and search the notebook prose for it.
+class TestPartM_MarkdownNumbersMatchLive:
+    def _canonical(self):
+        loans, X, Xtr, Xte, ytr, yte = contract_split()
+        fill = Xtr["credit_score"].mean()
+        Xtrf = Xtr.fillna(fill); Xtef = Xte.fillna(fill)
+        db = DummyClassifier(strategy="most_frequent").fit(Xtrf, ytr)
+        lr = LogisticRegression(max_iter=2000).fit(Xtrf, ytr)
+        dt = DecisionTreeClassifier(max_depth=3, random_state=42).fit(Xtrf, ytr)
+        rf = RandomForestClassifier(n_estimators=200, random_state=42).fit(Xtrf, ytr)
+
+        def five(pred, prob):
+            return (accuracy_score(yte, pred), precision_score(yte, pred),
+                    recall_score(yte, pred), f1_score(yte, pred), roc_auc_score(yte, prob))
+
+        out = {
+            "baseline": five(db.predict(Xtef), db.predict_proba(Xtef)[:, 1]),
+            "logistic_regression": five(lr.predict(Xtef), lr.predict_proba(Xtef)[:, 1]),
+            "decision_tree": five(dt.predict(Xtef), dt.predict_proba(Xtef)[:, 1]),
+            "random_forest": five(rf.predict(Xtef), rf.predict_proba(Xtef)[:, 1]),
+        }
+        rng = np.random.default_rng(42)
+        yarr = yte.to_numpy(); n = len(yte)
+        prf = rf.predict_proba(Xtef)[:, 1]; plr = lr.predict_proba(Xtef)[:, 1]
+        diffs = np.empty(2000)
+        for i in range(2000):
+            ids = rng.integers(0, n, size=n)
+            diffs[i] = roc_auc_score(yarr[ids], prf[ids]) - roc_auc_score(yarr[ids], plr[ids])
+        ci = np.percentile(diffs, [2.5, 97.5])
+        return loans, Xtr, ytr, Xtef, yte, fill, out, ci
+
+    def test_prose_numbers_match_live(self):
+        md_ = notebook_markdown()
+        _, _, _, _, _, fill, out, ci = self._canonical()
+        expected = [f"{fill:.4f}", f"{ci[0]:.4f}", f"{ci[1]:.4f}"]
+        for row in out.values():
+            expected += [f"{v:.4f}" for v in row]
+        missing = [e for e in expected if e not in md_]
+        assert not missing, f"stale prose numbers vs live run: {missing}"
+
+    def test_leak_demo_matches_live(self):
+        loans, Xtr, _, _, _, fill, _, _ = self._canonical()
+        full = loans["credit_score"].mean()
+        md_ = notebook_markdown()
+        for s in [f"{fill:.4f}", f"{full:.4f}", f"{full - fill:.4f}", "647.3138357705287"]:
+            assert s in md_, f"leak/imputation number missing from prose: {s}"
+
+    def test_tuning_cv_matches_live(self):
+        loans, Xtr, ytr, _, _, fill, _, _ = self._canonical()
+        Xtrf = Xtr.fillna(fill)
+        depth_best = cross_val_score(DecisionTreeClassifier(max_depth=3, random_state=42),
+                                     Xtrf, ytr, cv=5, scoring="roc_auc").mean()
+        rf100 = cross_val_score(RandomForestClassifier(n_estimators=100, random_state=42),
+                                Xtrf, ytr, cv=5, scoring="roc_auc").mean()
+        md_ = notebook_markdown()
+        assert f"{depth_best:.4f}" in md_, f"depth-3 CV value drifted ({depth_best:.4f})"
+        assert f"{rf100:.4f}" in md_, f"n_estimators=100 CV value drifted ({rf100:.4f})"
+        assert "n_estimators=200" in md_ and "max_depth=3" in md_
+
+    def test_calibration_gaps_match_live(self):
+        loans, Xtr, ytr, Xtef, yte, fill, out, _ = self._canonical()
+        rf = RandomForestClassifier(n_estimators=200, random_state=42).fit(Xtr.fillna(fill), ytr)
+        frac, mean = calibration_curve(yte, rf.predict_proba(Xtef)[:, 1], n_bins=5, strategy="uniform")
+        md_ = notebook_markdown()
+        for gap in np.abs(frac - mean).round(3):
+            assert f"{gap:.3f}" in md_, f"calibration gap {gap:.3f} missing from prose"
+
+    def test_error_analysis_ci_matches_live(self):
+        # supported error pattern must be quoted in prose with ITS live CI
+        loans = load_loans()
+        X = pd.get_dummies(loans[["credit_score", "applicant_income", "loan_amount", "employment_type"]],
+                           columns=["employment_type"], drop_first=True)
+        Xtr, Xte, ytr, yte = train_test_split(X, loans["default"], test_size=0.2,
+                                              random_state=42, stratify=loans["default"])
+        fill = Xtr["credit_score"].mean()
+        Xtrf = Xtr.fillna(fill); Xtef = Xte.fillna(fill)
+        rf = RandomForestClassifier(n_estimators=200, random_state=42).fit(Xtrf, ytr)
+        pred = rf.predict(Xtef)
+        mis = Xtef[pred != yte.to_numpy()]; cor = Xtef[pred == yte.to_numpy()]
+        rng = np.random.default_rng(7)
+        d = np.empty(2000)
+        for i in range(2000):
+            d[i] = mis["credit_score"].sample(n=len(mis), replace=True, random_state=rng).mean() \
+                 - cor["credit_score"].sample(n=len(cor), replace=True, random_state=rng).mean()
+        lo, hi = np.percentile(d, [2.5, 97.5])
+        md_ = notebook_markdown()
+        assert f"+{lo:.2f}" in md_ and f"+{hi:.2f}" in md_, f"error-analysis CI {lo:.2f}..{hi:.2f} not in prose"
+        assert "56 / 240" in md_
+
+    def test_spec_literals_stated_in_prose(self):
+        md_ = notebook_markdown()
+        for s in ["max_depth=3", "n_estimators=200", "0.50 decision threshold",
+                  "strategy=\"most_frequent\"", "test_size=0.2", "random_state=42",
+                  "stratify=y", "drop_first=True", "max_iter=2000"]:
+            assert s in md_, f"spec-literal reasoning missing in prose: {s}"

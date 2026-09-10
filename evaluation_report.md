@@ -141,7 +141,7 @@ curves in `charts/chart_roc_curves.png`.
 | `charts/chart_pr_curve.png` | the precision/recall trade-off behind the Q3 "accuracy vs recall" defense, with the forest's **@0.5 operating point** (P 0.79 / R 0.83) marked |
 | `charts/chart_error_analysis.png` | wrong-vs-correct row means per feature (the signal vs noise story visually) |
 | `charts/chart_confusion_matrix.png` | the final model's raw 2×2: 24 missed defaulters (FN) vs 32 false alarms (FP) of 240 |
-| `charts/chart_feature_importance.png` | what the forest uses: `credit_score` ~0.60, then the ratio-bearing features |
+| `charts/chart_feature_importance.png` | what the forest uses: `credit_score` 0.47, then the ratio-bearing `applicant_income` 0.25 / `loan_amount` 0.24 (employment dummies 0.02 each) |
 | `charts/chart_imputation_leak.png` | train-only mean (used, teal) vs full-data mean (leaked, grey) — the +0.2672 choice made visible |
 
 All eight charts follow one deliberate colour scheme (see §7) — the same model always has the same colour,
