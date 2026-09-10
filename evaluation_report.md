@@ -11,6 +11,18 @@
 
 ---
 
+## Executive summary (plain language)
+
+**The task.** A lender wants to know, before giving out a loan, whether an applicant is likely to repay it or likely to default. We are given past applicants' income, requested loan amount, employment type and credit score, together with whether each of them ended up defaulting, and asked to build a model that predicts the outcome for a new applicant. One detail keeps this honest and realistic: for some of the past applicants the credit score is simply missing from the record — the way credit-bureau data really is for some people — so the model has to cope with incomplete information, just as a real underwriter would.
+
+**What we did.** We taught each candidate model using only part of the data, and kept a separate slice aside that no model was ever allowed to look at. Every claim in this report is measured on that held-out slice, so no model gets credit for having "seen the answers". We dealt with the missing credit scores using only the teaching slice, never the held-out one, so the fill-in value itself could not leak ahead of real performance. We then built four models — from a naive "predict everyone defaults" fallback up to more sophisticated ones — and compared them fairly on the same held-out slice.
+
+**What we found.** The naive fallback turns out to be a real opponent: purely by guessing the common answer it gets a large slice of applicants right, so any genuinely useful model has to do visibly better than that. The model we shipped, a random forest, does precisely that — it correctly flags most of the applicants who go on to default without rejecting too many who would have repaid, and its probability estimates are trustworthy enough to sort applicants into broad risk tiers (low risk, medium risk, high risk) with confidence.
+
+**One honest limitation.** All of these results come from a single slice of one artificial dataset. Real loan books behave differently, so before this model made actual lending decisions it would have to be re-checked and re-tuned on real repayment data first.
+
+---
+
 ## 1. Data preparation (the part that gets points)
 
 ### 1.1 Features — exactly the 5-column contract
