@@ -7,7 +7,7 @@
 **Scoring:** held-out `X_test` only — accuracy, precision, recall, f1, ROC-AUC
 **Final model:** `random_forest` (decided by data + bootstrap CI, not by hand-waving)
 **Charts:** `charts/` (2 required + 6 bonus) — the 2 required also at **repo root** (exactly where the assignment's own self-check opens them), **Data:** `data/loans.csv` (+ sha256)
-**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (**164 checks**, Parts A–M), all green
+**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (**165 checks**, Parts A–M), all green
 
 ---
 
@@ -190,5 +190,5 @@ re-validate on repeated/aligned splits and on live data before relying on the ex
   nothing hard-coded.
 - `model_metrics.json`, all 8 charts in `charts/`, the 2 required root-level charts and
   `data/loans.csv` are regenerated in the run.
-- `test_friday_full.py` re-derives the whole contract from the seeds: **164 checks** green
+- `test_friday_full.py` re-derives the whole contract from the seeds: **165 checks** green
   (Parts A–M, see `python3 -m pytest test_friday_sample.py test_friday_full.py -q`).

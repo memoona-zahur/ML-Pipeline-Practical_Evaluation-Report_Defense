@@ -103,7 +103,7 @@ All 5 brief questions answered in `defense_answers.md`, each citing the submissi
   all edge-clean and on one semantic colour policy (documented in notebook Section 14 + report Section 7).
 - `data/loans.csv` + sha256 fingerprint for byte-exact reproducibility.
 - Pinned `requirements.txt`; the exact tested versions printed by the notebook itself.
-- 164 automated checks across `test_friday_sample.py` + `test_friday_full.py` (Parts A–M),
+- 165 automated checks across `test_friday_sample.py` + `test_friday_full.py` (Parts A–M),
   including end-to-end **numeric-fidelity** re-runs of the whole pipeline.
 - One honest limitation is stated in the report (50/50 split single draw; no feature scaling;
   synthetic data).

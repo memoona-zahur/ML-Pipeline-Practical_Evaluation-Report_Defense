@@ -17,7 +17,7 @@ defended final model, with an evaluation report, defense answers and two test su
 | `technical_summary.md` | one-page technical recap of pipeline, results and reproducibility |
 | `self_review.md` | point-by-point verification of every assignment requirement + hidden-test readiness |
 | `test_friday_sample.py` | structural sample self-check (superset of the provided one) |
-| `test_friday_full.py` | full behavioural/anti-leakage suite (**164 checks**, Parts A–M, beyond minimum) |
+| `test_friday_full.py` | full behavioural/anti-leakage suite (**165 checks**, Parts A–M, beyond minimum) |
 | `requirements.txt` | pinned, verified environment |
 
 ## Contract (literal, non-negotiable)
@@ -53,7 +53,10 @@ python3 -m pytest test_friday_full.py -q
 ## Testing
 
 ```bash
-python3 -m pytest test_friday_sample.py test_friday_full.py -q   # full gate: 164 checks
+python3 -m pytest test_friday_sample.py test_friday_full.py -q   # quick gate (dots only)
+python3 -m pytest test_friday_sample.py test_friday_full.py -v   # verbose: every check by name
+python3 -m pytest test_friday_sample.py test_friday_full.py -v -rA  # + full PASS/FAIL summary on exit
+python3 -m pytest test_friday_sample.py test_friday_full.py -v -rA -W error::DeprecationWarning  # zero-tolerance: warnings fail
 ```
 
 The full suite re-derives the entire contract from the seeds (no numbers hard-coded in
