@@ -27,9 +27,9 @@ recall 0.8333 vs 0.8264.
 
 Logistic's only lead is **ROC-AUC** (0.8448 vs 0.8249). Is that lead real? I bootstrapped the
 difference on the test set (2000 resamples, seed 42): **95% CI of (RF − LR) AUC = [−0.0487, +0.0086]**,
-which **crosses zero**. So at n = 240 the two models separate classes *equally well*; the AUC gap is
-**not statistically significant**. With indistinguishable discrimination, the model that is better on
-the decision-relevant metrics wins → `random_forest`.
+which **crosses zero**: the test set provides no statistically significant evidence that the two
+models' AUCs differ. With no significant discrimination gap on this sample, the model that is better
+on the decision-relevant metrics wins → `random_forest`.
 
 So the loaded comparison in the question is the actual trap: LR is the safe default reflex, but a
 default reflex is not an answer — the data and the decision metric are. The forest also prices risk
@@ -113,8 +113,8 @@ frequency.
 
 So **yes, with two conditions** — I would trust these probabilities to set **coarse risk tiers**
 (bucket "reject", "watch", "price-up"), because a ±3-point error cannot flip a 0.15 into a 0.65. I
-would **not** trust them to set fine-grain risk premia to the basis point, for three reasons: (1)
-each bin here holds only ~48 test rows, so the extreme-bin figures carry wide sampling uncertainty;
+would **not** trust them to set fine-grain risk premia to the basis point, for three reasons: (1) in this run the five uniform bins hold 28, 44, 40, 46 and 82 test rows
+respectively — they are uneven, so the smallest bins carry the widest sampling uncertainty;
 (2) calibration was measured on one draw of a synthetic population — it is a snapshot, not a
 guarantee, so a production loan desk would need ongoing recalibration on real repayment labels; (3)
 my error analysis shows the biggest miss is exactly the *high-credit-score* segment (CI

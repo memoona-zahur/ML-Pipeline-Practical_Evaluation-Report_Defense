@@ -120,7 +120,7 @@ feature-by-feature, with a bootstrap CI on each mean difference (2000 resamples)
 
 | feature | wrong-mean | correct-mean | diff CI | conclusion |
 |---------|-----------|--------------|---------|------------|
-| credit_score | 666.2 | 643.2 | [+9.53, +36.47] | **CI excludes 0** → the forest genuinely misreads *higher-credit-score* applicants (the DGP places some "good" scores just above the boundary) |
+| credit_score | 666.2 | 643.2 | [+9.53, +36.47] | **Within this held-out test sample, misclassified applicants had significantly higher credit scores on average** (the DGP places some "good" scores just above the boundary) |
 | applicant_income | 55879 | 55901 | [−5716, +5554] | plausible noise |
 | loan_amount | 15995 | 15624 | [−1659, +2304] | plausible noise |
 
@@ -141,8 +141,9 @@ Uniform 5-bin calibration of the forest's probabilities on the held-out test:
 | 4 | 0.71 | 0.70 | 0.014 |
 | 5 | 0.92 | 0.90 | 0.022 |
 
-Max deviation ~3.6 points — **well-calibrated**; probabilities are usable directly for risk
-thresholding & pricing, not just ranking. See `charts/chart_calibration.png` and (bonus) the ROC
+Max deviation ~3.6 points — an encouraging result, but measured on one synthetic 240-row test
+draw: it supports using these probabilities for **coarse risk-tiering** (reject / watch / price-up), not
+for production-precision pricing. See `charts/chart_calibration.png` and (bonus) the ROC
 curves in `charts/chart_roc_curves.png`.
 
 ## 6. Bonus charts (beyond the minimum)
@@ -185,7 +186,8 @@ content touches the image border.
    LR's AUC edge (0.8448 vs 0.8249) *not significant* (bootstrap CI crosses zero).
 4. **Errors are not random** — a statistically-supported pattern: the forest misclassifies
    high-credit-score applicants (CI [+9.5, +36.5] excludes 0) and `Self-Employed` rows.
-5. **Probabilities are trustworthy** — calibration within ~3.6 points of perfect across 5 bins.
+5. **Calibration is encouraging within this test sample** — max bin gap ~3.6 points across 5 bins
+   (not a production-readiness claim; see the honest limitation).
 
 ## 8.5 One honest limitation
 

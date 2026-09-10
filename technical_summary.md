@@ -94,7 +94,9 @@ correct); the credit-score finding is the only statistically-supported one.
 ## 9. Calibration (final model)
 
 Uniform 5-bin on the held-out test; max gap **3.6 points** (bins: 0.036 / 0.031 / 0.001 / 0.014 / 0.022).
-The forest's probabilities are usable directly for risk pricing, not only for ranking.
+The bins are unevenly sized in this draw (28 / 44 / 40 / 46 / 82 rows), so the smallest bin estimates
+carry more sampling noise. The probabilities are well-calibrated enough for coarse risk-tiering on this
+dataset; they are **not** production-ready interest-rate inputs without recalibration on real labels.
 
 ## 10. Reproducibility & file map
 
