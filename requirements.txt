@@ -1,0 +1,13 @@
+# Python environment for the Friday Assessment (Week 06) — verified pinned versions.
+# pip install -r requirements.txt
+numpy==2.2.6
+pandas==2.3.3
+scikit-learn==1.7.2
+matplotlib==3.10.9
+scipy==1.15.3
+nbformat==5.10.4
+nbconvert==7.16.4
+jupyter==1.1.0
+ipykernel==6.29.5
+pillow==11.1.0
+pytest==9.0.1

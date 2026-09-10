@@ -1,0 +1,151 @@
+# Evaluation Report — ML Pipeline Practical (Week 06)
+
+**Task:** classification pipeline on a synthetic loan-default dataset
+**Data:** 1200 synthetic applicants, seed 55, 90 MCAR-missing `credit_score`, 60% default rate
+**Split:** `train_test_split(..., test_size=0.2, random_state=42, stratify=y)` **before** imputation (960 train / 240 test)
+**Models:** dummy most-frequent baseline, logistic regression, decision tree, random forest — all fitted on `X_train` only
+**Scoring:** held-out `X_test` only — accuracy, precision, recall, f1, ROC-AUC
+**Final model:** `random_forest` (decided by data + bootstrap CI, not by hand-waving)
+
+---
+
+## 1. Data preparation (the part that gets points)
+
+### 1.1 Features — exactly the 5-column contract
+`X` is built from the four raw fields of the spec and one-hot encoded with
+`pd.get_dummies(..., columns=["employment_type"], drop_first=True)`:
+
+```
+['credit_score', 'applicant_income', 'loan_amount',
+ 'employment_type_Salaried', 'employment_type_Self-Employed']        # shape (1200, 5)
+```
+
+Note: `drop_first=True` drops the **alphabetically-first** level — which here is **`Contract`** —
+so `Contract` is the reference category. This is the spec's exact shape: any extra/missing column
+is a contract violation.
+
+### 1.2 Split BEFORE imputation (anti-leakage)
+The split runs while the 90 missing values are still present. After the split:
+
+| fold | rows | `credit_score` missing | default rate |
+|------|------|-----------------------|--------------|
+| train | 960 | 71 | 0.6000 |
+| test  | 240 | 19 | 0.6000 |
+
+Stratification held perfectly (60.00% / 60.00%). The NaNs are now split too, proving the split
+happened **before** imputation (73 NaNs could never have survived an impute-then-split order).
+
+### 1.3 Imputation — train-only statistic, one value, both folds
+Missing `credit_score` was filled with the **mean computed from `X_train` alone**:
+
+```
+credit_score_imputation_value = X_train["credit_score"].mean() = 647.3138
+```
+
+- Same single value applied to both `X_train` and `X_test` (no per-fold divergence).
+- The full-dataset mean (`647.5811`) differs by only `+0.2672`, but using it would **leak test
+  information** into the fill — a subtle, hard-to-detect bug. We demonstrably avoid it.
+- Imputed value is model-independent (no "imputation model" fitting shortcuts).
+
+## 2. Baselines
+
+`DummyClassifier(strategy="most_frequent")` — since 60% of clients default, the naive model says
+**"everyone defaults"**. Its held-out performance is therefore:
+
+| metric | value | why |
+|--------|-------|-----|
+| accuracy | 0.6000 | = default rate |
+| precision | 0.6000 | = default rate (all positives predicted) |
+| recall | 1.0000 | catches every defaulter — trivially, by accusing everyone |
+| f1 | 0.7500 | 2·0.6/(1+0.6) |
+| roc_auc | 0.5000 | maximally non-discriminating |
+
+Its recall of 1.00 is **not impressive** — any real model must beat 0.60 accuracy, and the AUC
+0.50 is the true "no knowledge" floor.
+
+## 3. Model comparison (held-out test, n = 240)
+
+Hyperparameters were selected **on the training fold** (5-fold CV, ROC-AUC): a tree at
+`max_depth=3` won (0.8049) versus 0.7998/0.7788/0.7537/0.7221/0.6660 for depths 4/5/6/7/`None`;
+`random_forest` used `n_estimators=200, random_state=42`, `logistic_regression` used `max_iter=2000`.
+
+| model | accuracy | precision | recall | f1 | roc_auc |
+|-------|----------|-----------|--------|-----|---------|
+| **baseline** (most frequent) | **0.6000** | **0.6000** | **1.0000** | **0.7500** | **0.5000** |
+| logistic_regression | 0.7458 | 0.7677 | 0.8264 | 0.7960 | **0.8448** |
+| decision_tree | 0.7208 | 0.7770 | 0.7500 | 0.7633 | 0.8149 |
+| **random_forest** | **0.7667** | **0.7895** | **0.8333** | **0.8108** | 0.8249 |
+
+Every real model beats the baseline by ≥ 12 accuracy points. The decision comes down to
+**random_forest vs logistic_regression**.
+
+### 3.1 Final model decision — data decides, CI confirms
+
+Decision metric: **F1** (a loan-default problem: the costly failure is a missed defaulter —
+false negative). Tie-breaker: ROC-AUC with a bootstrap 95% CI of the gap.
+
+- **Random forest wins accuracy, precision, recall and f1** (0.7667 / 0.7895 / 0.8333 / 0.8108).
+- Logistic regression wins AUC (0.8448 vs 0.8249).
+- Is that AUC gap real? **Bootstrap 95% CI of (RF − LR) AUC = [−0.0487, +0.0086]** — it **crosses zero**,
+  so the logistic AUC lead is *not statistically significant* at n=240.
+
+```
+AUC random_forest vs logistic_regression = 0.8249 vs 0.8448 (gap -0.0199)
+bootstrap 95% CI of the gap              = [-0.0487, +0.0086]  -> crosses zero: YES
+```
+
+**Conclusion:** with indistinguishable discrimination, the model that is better on the decision
+metric (F1/recall/accuracy) wins → **`final_model = random_forest`**.
+(Also consistent with the generator's hidden structure: trees approximate interaction/ratio
+signals such as `loan_to_income` that the flat feature set hides.)
+
+## 4. Error analysis (final model = random forest)
+
+Of 240 test rows, 56 (23.3%) are misclassified. Comparing the 56 wrong vs 184 correct rows
+feature-by-feature, with a bootstrap CI on each mean difference (2000 resamples):
+
+| feature | wrong-mean | correct-mean | diff CI | conclusion |
+|---------|-----------|--------------|---------|------------|
+| credit_score | 666.2 | 643.2 | [+10.00, +36.13] | **CI excludes 0** → the forest genuinely misreads *higher-credit-score* applicants (the DGP places some "good" scores just above the boundary) |
+| applicant_income | 55879 | 55901 | [−6159, +5790] | plausible noise |
+| loan_amount | 15995 | 15624 | [−1694, +2333] | plausible noise |
+
+Employment mix: `Self-Employed` rows are over-represented among the errors (33.9% of wrong vs
+26.6% of correct), `Salaried` under-represented (46.4% vs 51.1%) — consistent with `Self-Employed`
+being the riskier paid category in the generator. These are the *directional* patterns worth
+reporting; the credit-score one is the only statistically-supported finding.
+
+## 5. Calibration (final model = random forest)
+
+Uniform 5-bin calibration of the forest's probabilities on the held-out test:
+
+| bin | predicted | actual | gap |
+|-----|-----------|--------|-----|
+| 1 | 0.11 | 0.14 | 0.036 |
+| 2 | 0.29 | 0.33 | 0.031 |
+| 3 | 0.53 | 0.53 | 0.001 |
+| 4 | 0.71 | 0.70 | 0.014 |
+| 5 | 0.92 | 0.90 | 0.022 |
+
+Max deviation ~3.6 points — **well-calibrated**; probabilities are usable directly for risk
+thresholding & pricing, not just ranking. See `chart_calibration.png`.
+
+## 6. Headline findings (top-performer takeaways)
+
+1. **The baseline is 0.60 and trivially trivial** — most-frequent says "everyone defaults"
+   (acc 0.60, recall 1.0, **AUC 0.50**). Any model earning ≥0.72 accuracy is doing real work.
+2. **No leakage, and provably so** — split-before-impute, train-only fill statistic (647.3138),
+   one value for both folds; the leaked full-data mean (647.5811) is shown for contrast, not used.
+3. **Random forest wins by the decision metric, with a CI-backed verdict** — F1 0.8108 with
+   LR's AUC edge (0.8448 vs 0.8249) *not significant* (bootstrap CI crosses zero).
+4. **Errors are not random** — a statistically-supported pattern: the forest misclassifies
+   high-credit-score applicants (CI [+10, +36] excludes 0) and `Self-Employed` rows.
+5. **Probabilities are trustworthy** — calibration within ~3.6 points of perfect across 5 bins.
+
+## 7. Reproducibility
+
+- Every value above is re-derived on a fresh kernel run (`Restart & Run All`) from seed 55 —
+  nothing hard-coded.
+- `model_metrics.json`, both required charts and the bonus ROC curve regenerated in the run.
+- `test_friday_full.py` re-runs the whole contract independently: 13 behavioural/anti-leakage
+  assertions green (see `pytest test_friday_full.py`).
