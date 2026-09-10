@@ -689,3 +689,42 @@ class TestPartM_MarkdownNumbersMatchLive:
                   "strategy=\"most_frequent\"", "test_size=0.2", "random_state=42",
                   "stratify=y", "drop_first=True", "max_iter=2000"]:
             assert s in md_, f"spec-literal reasoning missing in prose: {s}"
+
+    def test_markdown_tables_are_wellformed(self):
+        # every GFM table in the notebook prose must survive rendering: header +
+        # separator + consistent column count. A collapsed single-line "table"
+        # (newlines lost) breaks the pattern silently.
+        import nbformat
+        nb = nbformat.read("friday_pipeline.ipynb", as_version=4)
+        sep_re = re.compile(r"^:?-{3,}:?$")
+        tables = 0
+        for c in nb.cells:
+            if c.cell_type != "markdown":
+                continue
+            lines = c.source.splitlines()
+            i = 0
+            while i < len(lines):
+                raw = lines[i].strip()
+                line = raw[2:] if raw.startswith("> ") else raw
+                if "|" not in line:
+                    i += 1
+                    continue
+                rows = []
+                j = i
+                while j < len(lines):
+                    r = lines[j].strip()
+                    cell = r[2:] if r.startswith("> ") else r
+                    if "|" not in cell:
+                        break
+                    rows.append(cell); j += 1
+                assert len(rows) >= 3, f"table too short (cell {i}): {rows}"
+                ncol = len([s for s in rows[0].split("|") if s.strip()])
+                inner = [s for s in rows[1].split("|")[1:-1]]
+                assert len(inner) == ncol and all(sep_re.match(s.strip()) for s in inner), \
+                    f"bad separator row: {rows[1]}"
+                for r in rows[2:]:
+                    nc = len([s for s in r.split("|") if s.strip()])
+                    assert nc == ncol, f"column mismatch {nc}!={ncol}: {r}"
+                tables += 1
+                i = j
+        assert tables >= 3, "expected at least 3 prose tables (metrics, calibration, colour policy)"
