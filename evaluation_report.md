@@ -167,8 +167,8 @@ grey is reserved for the "no-information" floor, and legends sit below the axes 
 | blue | `#2C7FB8` | logistic regression | cool, linear/parametric family; distinct from tree/forest |
 | green | `#31A354` | decision tree | hierarchical/branching metaphor, distinguishable even by colour-blind viewers (also differs by position/shape) |
 | purple-bordeaux | `#7A4BB8` | random forest (final model) | the "winner" accent, kept consistent with the forest-purple used in previous weeks' notebooks |
-| deep-red | `#9E2A2B` | misclassified rows (error chart) | reserved for "mistake" semantics only — never a model |
-| teal | `#17919A` | chosen imputation value (leak chart) / chosen operating point (PR chart) | "used/selected" semantic for a non-model decision point |
+| deep-red | `#9E2A2B` | reserved: "mistake" semantics only | never a model; the error chart now encodes the bootstrap CI instead: teal = supported gap (excludes 0), grey = null (contains 0) |
+| teal | `#17919A` | chosen imputation value (leak chart) / chosen operating point (PR chart) / *supported* CI gap (error chart) | "used/selected/confirmed" semantic for a non-model decision point |
 
 Rules enforced by construction: model-colour mapping is global (Section 14 in the notebook), the confusion
 matrix uses the **purple family** as a gradient for the final model (same colour → same model), bar
