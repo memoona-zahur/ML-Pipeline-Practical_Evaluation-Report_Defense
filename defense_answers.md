@@ -34,7 +34,7 @@ the decision-relevant metrics wins → `random_forest`.
 So the loaded comparison in the question is the actual trap: LR is the safe default reflex, but a
 default reflex is not an answer — the data and the decision metric are. The forest also prices risk
 well (calibration gap ≤ 3.6 pts, Q4), and my error analysis found the one statistically-significant
-pattern in *its* mistakes (Q1's appendix: high-credit-score rows, CI [+9.53, +36.47] excludes 0). On
+pattern in *its* mistakes (high-credit-score rows, CI [+9.53, +36.47] excludes 0). On
 a problem shaped like this, model choice should come from decision metric + uncertainty, never from
 "LR is usually fine".
 

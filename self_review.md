@@ -105,8 +105,8 @@ All 5 brief questions answered in `defense_answers.md`, each citing the submissi
 - Pinned `requirements.txt`; the exact tested versions printed by the notebook itself.
 - 165 automated checks across `test_friday_sample.py` + `test_friday_full.py` (Parts A–M),
   including end-to-end **numeric-fidelity** re-runs of the whole pipeline.
-- One honest limitation is stated in the report (50/50 split single draw; no feature scaling;
-  synthetic data).
+- One honest limitation is stated in the report (the headline numbers are a single-draw estimate
+  from one 80/20 split, seed 42; re-validation on live data needed before relying on exact figures).
 
 ## I. Manual-review confidence notes
 

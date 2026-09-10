@@ -109,8 +109,8 @@ feature-by-feature, with a bootstrap CI on each mean difference (2000 resamples)
 | feature | wrong-mean | correct-mean | diff CI | conclusion |
 |---------|-----------|--------------|---------|------------|
 | credit_score | 666.2 | 643.2 | [+9.53, +36.47] | **CI excludes 0** → the forest genuinely misreads *higher-credit-score* applicants (the DGP places some "good" scores just above the boundary) |
-| applicant_income | 55879 | 55901 | [−6159, +5790] | plausible noise |
-| loan_amount | 15995 | 15624 | [−1694, +2333] | plausible noise |
+| applicant_income | 55879 | 55901 | [−5716, +5554] | plausible noise |
+| loan_amount | 15995 | 15624 | [−1659, +2304] | plausible noise |
 
 Employment mix: `Self-Employed` rows are over-represented among the errors (33.9% of wrong vs
 26.6% of correct), `Salaried` under-represented (46.4% vs 51.1%) — consistent with `Self-Employed`

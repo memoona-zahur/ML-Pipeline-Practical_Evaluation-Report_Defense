@@ -1,7 +1,7 @@
 # test_friday_full.py — full behavioural & anti-leakage verification.
 #   run with: pytest test_friday_full.py -v
 #
-# Organised in Parts (A..P) so each failing check names the exact contract piece.
+# Organised in Parts (A..M) so each failing check names the exact contract piece.
 # Part-level parametrisation makes this suite wide (~100 concrete assertions in
 # ~30 test functions), not just long — every claim below is re-derived from the
 # seeds, never hard-coded from the notebook.
