@@ -108,7 +108,7 @@ charts/                      2 required + 6 bonus charts (ROC, PR, error analysi
 evaluation_report.md         plain-language report (required)
 defense_answers.md           written defense, Q1–Q5 (required)
 test_friday_sample.py        structural self-check (passes the assignment's own sample check)
-test_friday_full.py          Parts A–K behavioural suite (~158 checks) incl. numeric-fidelity re-runs
+test_friday_full.py          Parts A–M behavioural suite (164 checks) incl. numeric-fidelity re-runs
 technical_summary.md         this file
 self_review.md               point-by-point requirement verification + hidden-test readiness
 requirements.txt             pinned environment

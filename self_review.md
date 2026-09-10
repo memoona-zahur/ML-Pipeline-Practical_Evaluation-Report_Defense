@@ -12,23 +12,23 @@ and validated here.
 
 | # | requirement (verbatim) | our implementation | evidence |
 |---|------------------------|--------------------|----------|
-| A1 | "Run this exact generation code. Do not modify it" | notebook §2 replicates the generator byte-for-byte (seed 55, n=1200, same p, same distributions, same `rng.choice(n, 90)` missing pattern) | `friday_pipeline.ipynb` cell "Data generation (seed 55)" |
+| A1 | "Run this exact generation code. Do not modify it" | notebook Section 2 replicates the generator byte-for-byte (seed 55, n=1200, same p, same distributions, same `rng.choice(n, 90)` missing pattern) | `friday_pipeline.ipynb` cell "Data generation (seed 55)" |
 | A2 | `loans.shape == (1200, 6)` | asserted in notebook AND in both test files | notebook assert + `test_friday_sample.py:test_loans_csv_matches_spec_shape` |
-| A3 | `loans["credit_score"].isna().sum() == 90` | asserted; split also still sees 90 (71 train / 19 test) | `test_friday_sample.py` + notebook §4 output |
+| A3 | `loans["credit_score"].isna().sum() == 90` | asserted; split also still sees 90 (71 train / 19 test) | `test_friday_sample.py` + notebook Section 4 output |
 | A4 | deterministic dataset | `data/loans.csv` regenerated each run and compared byte-identical to re-run of the DGP; sha256 pinned | `test_friday_full.py` `TestPartA_Dataset::test_loans_csv_reproduces_notebook_contract` |
 
 ## B. Required pipeline steps — the contract
 
 | # | requirement (verbatim, condensed) | our implementation | evidence |
 |---|------------------------------------|--------------------|----------|
-| B1 | features = 4 columns → `get_dummies(columns=["employment_type"], drop_first=True)`, `y = loans["default"]` | exact; 5-column shape asserted | notebook §3; `test_friday_full.py` Part B |
-| B2 | split **before** imputation: `train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)` in that exact order on the still-NaN `X` | exact; NaNs counted *after* split as proof (71/19) | notebook §4; `test_friday_full.py` Part C |
-| B3 | impute using only `X_train["credit_score"]`; same value both folds; record the value | mean = `647.3138357705287` stored **full precision**; one value for both folds; asserted no NaN remains | notebook §5; `test_friday_full.py` Part D + Part K exact-match |
-| B4 | baseline = `DummyClassifier(strategy="most_frequent")` fit + scored on the exact split | exact | notebook §6; Part E |
-| B5 | logistic regression, decision tree, random forest on the same features/split; hyperparameters our choice; fit train-only, score test-only | exact; tuning (depth, n_estimators) on train CV only; `max_iter=2000` for LR convergence | notebook §7; Part F |
-| B6 | accuracy, precision, recall, F1, ROC-AUC for every model incl. baseline | exact — 4 models × 5 metrics in JSON and table | notebook §8; `model_metrics.json` |
-| B7 | error analysis: test rows the final model misclassifies; find a pattern | 56 rows; bootstrap CI finds the supported signal (credit_score CI [+9.53, +36.47] excludes 0); noise rows flagged as noise | notebook §11; `charts/chart_error_analysis.png` |
-| B8 | calibration curve for the **final** model's probabilities | uniform 5-bin; max gap 3.6 pts | notebook §12; `charts/chart_calibration.png` |
+| B1 | features = 4 columns → `get_dummies(columns=["employment_type"], drop_first=True)`, `y = loans["default"]` | exact; 5-column shape asserted | notebook Section 3; `test_friday_full.py` Part B |
+| B2 | split **before** imputation: `train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)` in that exact order on the still-NaN `X` | exact; NaNs counted *after* split as proof (71/19) | notebook Section 4; `test_friday_full.py` Part C |
+| B3 | impute using only `X_train["credit_score"]`; same value both folds; record the value | mean = `647.3138357705287` stored **full precision**; one value for both folds; asserted no NaN remains | notebook Section 5; `test_friday_full.py` Part D + Part K exact-match |
+| B4 | baseline = `DummyClassifier(strategy="most_frequent")` fit + scored on the exact split | exact | notebook Section 6; Part E |
+| B5 | logistic regression, decision tree, random forest on the same features/split; hyperparameters our choice; fit train-only, score test-only | exact; tuning (depth, n_estimators) on train CV only; `max_iter=2000` for LR convergence | notebook Section 7; Part F |
+| B6 | accuracy, precision, recall, F1, ROC-AUC for every model incl. baseline | exact — 4 models × 5 metrics in JSON and table | notebook Section 8; `model_metrics.json` |
+| B7 | error analysis: test rows the final model misclassifies; find a pattern | 56 rows; bootstrap CI finds the supported signal (credit_score CI [+9.53, +36.47] excludes 0); noise rows flagged as noise | notebook Section 11; `charts/chart_error_analysis.png` |
+| B8 | calibration curve for the **final** model's probabilities | uniform 5-bin; max gap 3.6 pts | notebook Section 12; `charts/chart_calibration.png` |
 
 ## C. Required outputs (exact filenames)
 
@@ -100,10 +100,10 @@ All 5 brief questions answered in `defense_answers.md`, each citing the submissi
 
 - 8 charts (2 required + 6 bonus: ROC, PR curve, error analysis, confusion matrix, feature importances,
   imputation-leak visual),
-  all edge-clean and on one semantic colour policy (documented in notebook §14 + report §7).
+  all edge-clean and on one semantic colour policy (documented in notebook Section 14 + report Section 7).
 - `data/loans.csv` + sha256 fingerprint for byte-exact reproducibility.
 - Pinned `requirements.txt`; the exact tested versions printed by the notebook itself.
-- ~158 automated checks across `test_friday_sample.py` + `test_friday_full.py` (Parts A–K),
+- 164 automated checks across `test_friday_sample.py` + `test_friday_full.py` (Parts A–M),
   including end-to-end **numeric-fidelity** re-runs of the whole pipeline.
 - One honest limitation is stated in the report (50/50 split single draw; no feature scaling;
   synthetic data).

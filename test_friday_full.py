@@ -349,7 +349,7 @@ def _check_png(name, min_bytes=1000):
     assert p.stat().st_size > min_bytes, f"too small {name}"
     img = Image.open(p)
     img.verify()
-    a = np.array(Image.open(p).convert("L"))
+    a = np.asarray(Image.open(p).convert("L"))
     assert a.min() < 60, f"blank image {name}"
     h, w = a.shape
     dr = np.where(a.min(axis=1) < 25)[0]

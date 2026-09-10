@@ -7,7 +7,7 @@
 **Scoring:** held-out `X_test` only — accuracy, precision, recall, f1, ROC-AUC
 **Final model:** `random_forest` (decided by data + bootstrap CI, not by hand-waving)
 **Charts:** `charts/` (2 required + 6 bonus) — the 2 required also at **repo root** (exactly where the assignment's own self-check opens them), **Data:** `data/loans.csv` (+ sha256)
-**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (**~158 checks**, Parts A–K), all green
+**Verification:** self-check `test_friday_sample.py` + full suite `test_friday_full.py` (**164 checks**, Parts A–M), all green
 
 ---
 
@@ -144,7 +144,7 @@ curves in `charts/chart_roc_curves.png`.
 | `charts/chart_feature_importance.png` | what the forest uses: `credit_score` 0.47, then the ratio-bearing `applicant_income` 0.25 / `loan_amount` 0.24 (employment dummies 0.02 each) |
 | `charts/chart_imputation_leak.png` | train-only mean (used, teal) vs full-data mean (leaked, grey) — the +0.2672 choice made visible |
 
-All eight charts follow one deliberate colour scheme (see §7) — the same model always has the same colour,
+All eight charts follow one deliberate colour scheme (see Section 7) — the same model always has the same colour,
 grey is reserved for the "no-information" floor, and legends sit below the axes so text can never overlap data.
 
 ## 7. Colour policy (why these colours, exactly)
@@ -158,12 +158,12 @@ grey is reserved for the "no-information" floor, and legends sit below the axes 
 | deep-red | `#9E2A2B` | misclassified rows (error chart) | reserved for "mistake" semantics only — never a model |
 | teal | `#17919A` | chosen imputation value (leak chart) / chosen operating point (PR chart) | "used/selected" semantic for a non-model decision point |
 
-Rules enforced by construction: model-colour mapping is global (§14 in the notebook), the confusion
+Rules enforced by construction: model-colour mapping is global (Section 14 in the notebook), the confusion
 matrix uses the **purple family** as a gradient for the final model (same colour → same model), bar
 values are labelled, y-axes start at 0 (or explicit y-lim), and the test suite asserts no chart
 content touches the image border.
 
-## 8. Headline findings (top-performer takeaways)
+## 8. Headline findings
 
 1. **The baseline is 0.60 and trivially trivial** — most-frequent says "everyone defaults"
    (acc 0.60, recall 1.0, **AUC 0.50**). Any model earning ≥0.72 accuracy is doing real work.
@@ -190,5 +190,5 @@ re-validate on repeated/aligned splits and on live data before relying on the ex
   nothing hard-coded.
 - `model_metrics.json`, all 8 charts in `charts/`, the 2 required root-level charts and
   `data/loans.csv` are regenerated in the run.
-- `test_friday_full.py` re-derives the whole contract from the seeds: **~158 checks** green
-  (Parts A–K, see `python3 -m pytest test_friday_sample.py test_friday_full.py -q`).
+- `test_friday_full.py` re-derives the whole contract from the seeds: **164 checks** green
+  (Parts A–M, see `python3 -m pytest test_friday_sample.py test_friday_full.py -q`).
