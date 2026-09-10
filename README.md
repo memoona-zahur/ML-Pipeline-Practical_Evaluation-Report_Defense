@@ -10,7 +10,7 @@ defended final model, with an evaluation report, defense answers and two test su
 | `friday_pipeline.ipynb` | the pipeline **as a report** — markdown cells carry the full story; Restart & Run All safe |
 | `model_metrics.json` | machine-readable metrics for all 4 models (+ imputation value, final model) |
 | `chart_model_comparison.png` / `chart_calibration.png` | **required outputs at repo root** (exactly where the assignment's self-check opens them) |
-| `charts/` | full gallery: the 2 required + bonus `chart_roc_curves.png`, `chart_error_analysis.png`, `chart_feature_importance.png`, `chart_imputation_leak.png` |
+| `charts/` | full gallery: the 2 required + 6 bonus — `chart_roc_curves.png`, `chart_pr_curve.png`, `chart_error_analysis.png`, `chart_confusion_matrix.png`, `chart_feature_importance.png`, `chart_imputation_leak.png` |
 | `data/` | `loans.csv` (seed-55 dataset) + `loans.sha256` fingerprint (traceable) |
 | `evaluation_report.md` | the evaluation report (question-framed, all real numbers) |
 | `defense_answers.md` | answers to the 5 defense questions citing the actual metrics |
